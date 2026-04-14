@@ -1,0 +1,39 @@
+name: Daily Auto Commits
+
+on:
+  schedule:
+    - cron: '0 12 * * *' # Runs at 12:00 UTC daily. You can adjust this.
+  workflow_dispatch: # Allows you to manually trigger it from the Actions tab
+
+jobs:
+  make-commits:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref || github.ref_name }} 
+
+      - name: Make 10 Commits
+        run: |
+          # Configure Git to use the standard GitHub Actions bot user
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          for i in {1..10}
+          do
+            # Update the file
+            echo "Auto commit $i on $(date)" > daily_commit.txt
+            git add daily_commit.txt
+            # Commit the change
+            git commit -m "Automated daily commit $i"
+          done
+
+      - name: Push Commits
+        run: |
+          # Push the commits back to the branch
+          git push origin HEAD
